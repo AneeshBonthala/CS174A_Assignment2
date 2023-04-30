@@ -62,6 +62,8 @@ class Base_Scene extends Scene {
         };
         // The white material and basic shader are used for drawing the outline.
         this.white = new Material(new defs.Basic_Shader());
+
+        this.sway = true;
     }
 
     display(context, program_state) {
@@ -104,16 +106,22 @@ export class Assignment2 extends Base_Scene {
             // TODO:  Requirement 5b:  Set a flag here that will toggle your outline on and off
         });
         this.key_triggered_button("Sit still", ["m"], () => {
-            // TODO:  Requirement 3d:  Set a flag here that will toggle your swaying motion on and off.
+            this.sway = !this.sway;
         });
     }
 
-    draw_box(context, program_state, model_transform, box_color) {
-        // TODO:  Helper function for requirement 3 (see hint).
-        //        This should make changes to the model_transform matrix, draw the next box, and return the newest model_transform.
-        // Hint:  You can add more parameters for this function, like the desired color, index of the box, etc.
+    draw_box(context, program_state, model_transform, box_color, box_index) {
+        const t = this.t = program_state.animation_time / 1000; // /1000 is one second;change accordingly
+        const maximum_angle = 0.05*Math.PI;
+        let rotation_angle = 0;
+        if (box_index !== 1) {
+            rotation_angle = 0.5*maximum_angle + 0.5*maximum_angle*(Math.sin(Math.PI*(t))); // bottom box does not sway
+            if (!this.sway) rotation_angle = maximum_angle; // swaying is turned off
+        }
+        model_transform = model_transform.times(Mat4.translation(-1,1,0))    // (0,2,0)+(-1,-1,0) stack+change pt of rotation
+            .times(Mat4.rotation(rotation_angle, 0,0,1))    // rotate
+            .times(Mat4.translation(1,1,0));    // translate back
         this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color:box_color}));
-        model_transform = model_transform.times(Mat4.translation(0, 2, 0));
         return model_transform;
     }
 
@@ -121,15 +129,8 @@ export class Assignment2 extends Base_Scene {
         super.display(context, program_state);
         const blue = hex_color("#1a9ffa");
         let model_transform = Mat4.identity();
-        // const t = this.t = program_state.animation_time / 1000;
-        for (let i = 0; i < 8; i++) {
-            model_transform = this.draw_box(context, program_state, model_transform, blue);
-            // if (!this.hover)
-            //     model_transform = model_transform.times(Mat4.rotation(t, 0, 1, 0))
+        for (let i = 1; i < 9; i++) {
+            model_transform = this.draw_box(context, program_state, model_transform, blue, i);
         }
-        //this.shapes.draw_box(context, program_state, model_transform, blue);
-        //this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color:blue}));
-        // TODO:  Draw your entire scene here.  Use this.draw_box( graphics_state, model_transform ) to call your helper.
-
     }
 }
