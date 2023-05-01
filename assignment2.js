@@ -38,7 +38,13 @@ class Cube_Outline extends Shape {
 class Cube_Single_Strip extends Shape {
     constructor() {
         super("position", "normal");
-        // TODO (Requirement 6)
+        this.arrays.position.push(...Vector3.cast(
+            [-1, -1, -1], [1, -1, -1], [-1, -1, 1], [1, -1, 1],
+            [-1, 1, -1], [1, 1, -1], [-1, 1, 1], [1, 1, 1]));
+        this.arrays.normal.push(...Vector3.cast(
+            [-1, -1, -1], [1, -1, -1], [-1, -1, 1], [1, -1, 1],
+            [-1, 1, -1], [1, 1, -1], [-1, 1, 1], [1, 1, 1]));
+        this.indices.push(0, 1, 2, 3, 7, 2, 5, 0, 4, 2, 6, 7, 4, 5);
     }
 }
 
@@ -56,6 +62,7 @@ class Base_Scene extends Scene {
         this.shapes = {
             'cube': new Cube(),
             'outline': new Cube_Outline(),
+            'strip': new Cube_Single_Strip()
         };
 
         // *** Materials
@@ -100,7 +107,7 @@ export class Assignment2 extends Base_Scene {
      * experimenting with matrix transformations.
      */
     set_colors() {
-        for (let i = 0; i < 8; i++) {
+        for (let i = 1; i < 9; i++) {
             this.box_colors[i] = color(Math.random(), Math.random(), Math.random(), 1.0);
         }
         // TODO:  Create a class member variable to store your cube's colors.
@@ -125,14 +132,17 @@ export class Assignment2 extends Base_Scene {
         const maximum_angle = 0.05*Math.PI;
         let rotation_angle = 0;
         const box_color = this.box_colors[box_index];
-        if (box_index !== 0) {
+        if (box_index !== 1) {
             rotation_angle = 0.5*maximum_angle + 0.5*maximum_angle*(Math.sin(Math.PI*(t))); // bottom box does not sway
             if (!this.sway) rotation_angle = maximum_angle; // swaying is turned off
         }
         model_transform = model_transform.times(Mat4.translation(-1,1,0))    // (0,2,0)+(-1,-1,0) stack+change pt of rotation
             .times(Mat4.rotation(rotation_angle, 0,0,1))    // rotate
             .times(Mat4.translation(1,1,0));    // translate back
-        if (!this.outlined) this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color:box_color}));
+        if (!this.outlined) {
+            if (box_index % 2 === 1) this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color:box_color}));
+            else this.shapes.strip.draw(context, program_state, model_transform, this.materials.plastic.override({color:box_color}), "TRIANGLE_STRIP");
+        }
         else this.shapes.outline.draw(context, program_state, model_transform, this.white, "LINES");
         return model_transform;
     }
@@ -141,7 +151,7 @@ export class Assignment2 extends Base_Scene {
         super.display(context, program_state);
         //const blue = hex_color("#1a9ffa");
         let model_transform = Mat4.identity();
-        for (let i = 0; i < 8; i++) {
+        for (let i = 1; i < 9; i++) {
             model_transform = this.draw_box(context, program_state, model_transform, i);
         }
     }
