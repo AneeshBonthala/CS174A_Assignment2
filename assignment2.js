@@ -25,10 +25,13 @@ class Cube extends Shape {
 class Cube_Outline extends Shape {
     constructor() {
         super("position", "color");
-        //  TODO (Requirement 5).
-        // When a set of lines is used in graphics, you should think of the list entries as
-        // broken down into pairs; each pair of vertices will be drawn as a line segment.
-        // Note: since the outline is rendered with Basic_shader, you need to redefine the position and color of each vertex
+        this.arrays.position.push(...Vector3.cast(
+            [1, 1, -1], [1, -1, -1], [-1, 1, 1], [-1, -1, 1], [1, 1, -1],  [-1, 1, -1],  [1, 1, 1],  [-1, 1, 1],
+            [-1, -1, -1], [-1, -1, 1], [-1, 1, -1], [-1, 1, 1], [1, -1, 1],  [1, -1, -1],  [1, 1, 1],  [1, 1, -1],
+            [1, -1, 1],  [-1, -1, 1],  [1, -1, 1],  [1, 1, 1], [1, -1, -1], [-1, -1, -1], [-1, -1, -1], [-1, 1, -1]));
+        const white = hex_color("#FFFFFF");
+        for (let i = 0; i < 24; i++) this.arrays.color.push(white);
+        this.indices = false;
     }
 }
 
@@ -64,6 +67,7 @@ class Base_Scene extends Scene {
         this.white = new Material(new defs.Basic_Shader());
 
         this.sway = true;
+        this.outlined = false;
 
         this.box_colors = [];
         this.set_colors();
@@ -109,7 +113,7 @@ export class Assignment2 extends Base_Scene {
         this.key_triggered_button("Change Colors", ["c"], this.set_colors);
         // Add a button for controlling the scene.
         this.key_triggered_button("Outline", ["o"], () => {
-            // TODO:  Requirement 5b:  Set a flag here that will toggle your outline on and off
+            this.outlined = !this.outlined;
         });
         this.key_triggered_button("Sit still", ["m"], () => {
             this.sway = !this.sway;
@@ -121,14 +125,15 @@ export class Assignment2 extends Base_Scene {
         const maximum_angle = 0.05*Math.PI;
         let rotation_angle = 0;
         const box_color = this.box_colors[box_index];
-        if (box_index !== 1) {
+        if (box_index !== 0) {
             rotation_angle = 0.5*maximum_angle + 0.5*maximum_angle*(Math.sin(Math.PI*(t))); // bottom box does not sway
             if (!this.sway) rotation_angle = maximum_angle; // swaying is turned off
         }
         model_transform = model_transform.times(Mat4.translation(-1,1,0))    // (0,2,0)+(-1,-1,0) stack+change pt of rotation
             .times(Mat4.rotation(rotation_angle, 0,0,1))    // rotate
             .times(Mat4.translation(1,1,0));    // translate back
-        this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color:box_color}));
+        if (!this.outlined) this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color:box_color}));
+        else this.shapes.outline.draw(context, program_state, model_transform, this.white, "LINES");
         return model_transform;
     }
 
