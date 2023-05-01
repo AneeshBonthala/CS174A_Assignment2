@@ -64,6 +64,9 @@ class Base_Scene extends Scene {
         this.white = new Material(new defs.Basic_Shader());
 
         this.sway = true;
+
+        this.box_colors = [];
+        this.set_colors();
     }
 
     display(context, program_state) {
@@ -93,6 +96,9 @@ export class Assignment2 extends Base_Scene {
      * experimenting with matrix transformations.
      */
     set_colors() {
+        for (let i = 0; i < 8; i++) {
+            this.box_colors[i] = color(Math.random(), Math.random(), Math.random(), 1.0);
+        }
         // TODO:  Create a class member variable to store your cube's colors.
         // Hint:  You might need to create a member variable at somewhere to store the colors, using `this`.
         // Hint2: You can consider add a constructor for class Assignment2, or add member variables in Base_Scene's constructor.
@@ -110,10 +116,11 @@ export class Assignment2 extends Base_Scene {
         });
     }
 
-    draw_box(context, program_state, model_transform, box_color, box_index) {
+    draw_box(context, program_state, model_transform, box_index) {
         const t = this.t = program_state.animation_time / 1000; // /1000 is one second;change accordingly
         const maximum_angle = 0.05*Math.PI;
         let rotation_angle = 0;
+        const box_color = this.box_colors[box_index];
         if (box_index !== 1) {
             rotation_angle = 0.5*maximum_angle + 0.5*maximum_angle*(Math.sin(Math.PI*(t))); // bottom box does not sway
             if (!this.sway) rotation_angle = maximum_angle; // swaying is turned off
@@ -127,10 +134,10 @@ export class Assignment2 extends Base_Scene {
 
     display(context, program_state) {
         super.display(context, program_state);
-        const blue = hex_color("#1a9ffa");
+        //const blue = hex_color("#1a9ffa");
         let model_transform = Mat4.identity();
-        for (let i = 1; i < 9; i++) {
-            model_transform = this.draw_box(context, program_state, model_transform, blue, i);
+        for (let i = 0; i < 8; i++) {
+            model_transform = this.draw_box(context, program_state, model_transform, i);
         }
     }
 }
