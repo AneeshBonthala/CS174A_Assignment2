@@ -39,12 +39,12 @@ class Cube_Single_Strip extends Shape {
     constructor() {
         super("position", "normal");
         this.arrays.position.push(...Vector3.cast(
-            [-1, -1, -1], [1, -1, -1], [-1, -1, 1], [1, -1, 1],
-            [-1, 1, -1], [1, 1, -1], [-1, 1, 1], [1, 1, 1]));
+            [1, 1, -1], [-1, 1, -1], [1, -1, -1], [-1, -1, -1],
+            [1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1]));
         this.arrays.normal.push(...Vector3.cast(
-            [-1, -1, -1], [1, -1, -1], [-1, -1, 1], [1, -1, 1],
-            [-1, 1, -1], [1, 1, -1], [-1, 1, 1], [1, 1, 1]));
-        this.indices.push(0, 1, 2, 3, 7, 2, 5, 0, 4, 2, 6, 7, 4, 5);
+            [1, 1, -1], [-1, 1, -1], [1, -1, -1], [-1, -1, -1],
+            [1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1]));
+        this.indices.push(3, 2, 6, 7, 4, 2, 0, 3, 1, 6, 5, 4, 1, 0);
     }
 }
 
@@ -110,9 +110,6 @@ export class Assignment2 extends Base_Scene {
         for (let i = 1; i < 9; i++) {
             this.box_colors[i] = color(Math.random(), Math.random(), Math.random(), 1.0);
         }
-        // TODO:  Create a class member variable to store your cube's colors.
-        // Hint:  You might need to create a member variable at somewhere to store the colors, using `this`.
-        // Hint2: You can consider add a constructor for class Assignment2, or add member variables in Base_Scene's constructor.
     }
 
     make_control_panel() {
@@ -128,23 +125,25 @@ export class Assignment2 extends Base_Scene {
     }
 
     draw_box(context, program_state, model_transform, box_index) {
-        const t = this.t = program_state.animation_time / 1000; // /1000 is one second;change accordingly
+        const t = this.t = program_state.animation_time / 500; // /500 is one second;change accordingly
         const maximum_angle = 0.05*Math.PI;
         let rotation_angle = 0;
         const box_color = this.box_colors[box_index];
         if (box_index !== 1) {
-            rotation_angle = 0.5*maximum_angle + 0.5*maximum_angle*(Math.sin(Math.PI*(t))); // bottom box does not sway
+            rotation_angle = 0.5 * maximum_angle + 0.5 * maximum_angle * (Math.sin(Math.PI * (t))); // bottom box does not sway
             if (!this.sway) rotation_angle = maximum_angle; // swaying is turned off
+            model_transform = model_transform.times(Mat4.translation(-1, 1.5, 0))
+                .times(Mat4.rotation(rotation_angle, 0, 0, 1))
+                .times(Mat4.scale(1, 1.5, 1))
+                .times(Mat4.translation(1, 1, 0))
         }
-        model_transform = model_transform.times(Mat4.translation(-1,1,0))    // (0,2,0)+(-1,-1,0) stack+change pt of rotation
-            .times(Mat4.rotation(rotation_angle, 0,0,1))    // rotate
-            .times(Mat4.translation(1,1,0));    // translate back
+        else model_transform = model_transform.times(Mat4.scale(1,1.5,1));
         if (!this.outlined) {
             if (box_index % 2 === 1) this.shapes.cube.draw(context, program_state, model_transform, this.materials.plastic.override({color:box_color}));
             else this.shapes.strip.draw(context, program_state, model_transform, this.materials.plastic.override({color:box_color}), "TRIANGLE_STRIP");
         }
         else this.shapes.outline.draw(context, program_state, model_transform, this.white, "LINES");
-        return model_transform;
+        return model_transform = model_transform.times(Mat4.scale(1, 2/3, 1));
     }
 
     display(context, program_state) {
